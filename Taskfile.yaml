@@ -1,0 +1,25 @@
+version: "3"
+
+tasks:
+  default:
+    cmds:
+      - task: testing
+      - task: migrate
+  testing:
+    aliases:
+      - test
+    desc: "Test code"
+    cmds:
+      - go test -v ./...
+  migrate:
+    vars:
+      DB_USER: admin
+      DB_PASSWORD: admin
+      DB_ADDRESS: localhost:5432
+      DB_NAME: postgres
+      MIGRATIONS_PATH: ./migrations
+    aliases:
+      - migrate
+    desc: "Run migrations"
+    cmds:
+      - go run ./cmd/migrator --db-address={{.DB_ADDRESS}} --db-name={{.DB_NAME}} --db-user={{.DB_USER}} --db-password={{.DB_PASSWORD}} --migrations-path={{.MIGRATIONS_PATH}}
