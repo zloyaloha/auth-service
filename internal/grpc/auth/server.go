@@ -9,7 +9,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/zloyaloha/auth-service/internal/services/auth"
-	"github.com/zloyaloha/auth-service/internal/storage"
+	"github.com/zloyaloha/auth-service/internal/storage/users-storage"
 	ssov1 "github.com/zloyaloha/protos/gen/go/sso"
 )
 
@@ -29,8 +29,10 @@ type Auth interface {
 	RegisterNewUser(
 		ctx context.Context,
 		email string,
+		first_name string,
+		last_name string,
 		password string,
-	) (userID int64, err error)
+	) (int64, error)
 }
 
 func Register(gRPCServer *grpc.Server, auth Auth) {
@@ -73,7 +75,7 @@ func (s *serverAPI) Register(
 		return nil, status.Error(codes.InvalidArgument, "password is required")
 	}
 
-	userID, err := s.auth.RegisterNewUser(ctx, in.GetEmail(), in.GetPassword())
+	userID, err := s.auth.RegisterNewUser(ctx, in.GetEmail(), in.GetFirstName(), in.GetLastName(), in.GetPassword())
 
 	if (err != nil) {
 		if errors.Is(err, storage.ErrUserExists) {

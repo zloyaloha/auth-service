@@ -29,35 +29,37 @@ var (
 )
 
 func TestNewToken(t *testing.T) {
-	token, err := NewToken(testUser, testApp, testDuration)
+	t.Run("TestNewTokenCreating", func(t *testing.T) {
+		token, err := NewToken(testUser, testApp, testDuration)
 
-	assert.Nil(t, err)
-	assert.NotEmpty(t, token)
-	assert.Greater(t, len(token), 100)
-}
-
-func TestNewToken_Claims(t *testing.T) {
-	tokenString, err := NewToken(testUser, testApp, testDuration)
-
-	assert.NoError(t, err)
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		return []byte(testApp.Secret), nil
+		assert.Nil(t, err)
+		assert.NotEmpty(t, token)
+		assert.Greater(t, len(token), 100)
 	})
 
-	assert.NoError(t, err)
-	claims := token.Claims.(jwt.MapClaims)
+	t.Run("TestNewToken_Claims", func(t *testing.T) {
+		tokenString, err := NewToken(testUser, testApp, testDuration)
 
-	assert.Equal(t, float64(testUser.ID), claims["uid"])
-	assert.Equal(t, testUser.Email, claims["email"])
-	assert.Equal(t, float64(testApp.ID), claims["app_id"])
+		assert.NoError(t, err)
+		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+			return []byte(testApp.Secret), nil
+		})
 
-	exp := time.Unix(int64(claims["exp"].(float64)), 0)
-	assert.True(t, exp.After(time.Now()))
-	assert.True(t, exp.Before(time.Now().Add(testDuration + time.Minute)))
-}
+		assert.NoError(t, err)
+		claims := token.Claims.(jwt.MapClaims)
 
-func TestNewToken_EmptySecret(t *testing.T) {
-	_, err := NewToken(testUser, testAppEmptySecret, testDuration)
+		assert.Equal(t, float64(testUser.ID), claims["uid"])
+		assert.Equal(t, testUser.Email, claims["email"])
+		assert.Equal(t, float64(testApp.ID), claims["app_id"])
 
-	assert.Error(t, err)
+		exp := time.Unix(int64(claims["exp"].(float64)), 0)
+		assert.True(t, exp.After(time.Now()))
+		assert.True(t, exp.Before(time.Now().Add(testDuration + time.Minute)))
+	})
+
+	t.Run("TestNewToken_EmptySecret", func(t *testing.T) {
+		_, err := NewToken(testUser, testAppEmptySecret, testDuration)
+
+		assert.Error(t, err)
+	})
 }

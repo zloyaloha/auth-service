@@ -11,7 +11,7 @@ import (
 
 	"github.com/zloyaloha/auth-service/internal/domain/models"
 	"github.com/zloyaloha/auth-service/internal/lib/jwt"
-	"github.com/zloyaloha/auth-service/internal/storage"
+	"github.com/zloyaloha/auth-service/internal/storage/users-storage"
 )
 
 var (
@@ -19,12 +19,13 @@ var (
 )
 
 type UserStorage interface {
-	SaveUser(ctx context.Context, email, first_name, last_name string, hash []byte) (uid int64, err error)
-	GetUser(ctx context.Context, email string) (models.User, error)
+	SaveUser(ctx context.Context, email, first_name, last_name string, hash []byte) (int64, error)
+	GetUser(ctx context.Context, email string) (*models.User, error)
 }
 
 type AppProvider interface {
-	GetApp(ctx context.Context, appID int) (models.App, error)
+	SaveApp(ctx context.Context, name, secret string) error
+	GetApp(ctx context.Context, appID int) (*models.App, error)
 }
 
 type Auth struct {
@@ -57,18 +58,18 @@ func (a *Auth) RegisterNewUser(ctx context.Context, email, first_name, last_name
 		return 0, fmt.Errorf("error: %w", err)
 	}
 
-	id, err := a.usrStorage.SaveUser(ctx, email, first_name, last_name, hash)
+	user_id, err := a.usrStorage.SaveUser(ctx, email, first_name, last_name, hash)
 
 	if err != nil {
 		a.logger.Error("Failed to save user to DB", zap.Error(err))
 		return 0, fmt.Errorf("error: %w", err)
 	}
 
-	return id, nil
+	return user_id, nil
 }
 
 func (a *Auth) Login(
-	ctx context.Context, 
+	ctx context.Context,
 	email, password string,
 	appID int,
 ) (string, error) {
@@ -103,7 +104,7 @@ func (a *Auth) Login(
 
 	a.logger.Info("user succesfully logged in")
 
-	token, err := jwt.NewToken(user, app, a.tokenTTL)
+	token, err := jwt.NewToken(*user, *app, a.tokenTTL)
 
 	if err != nil {
 		a.logger.Error("failed to generate token", zap.Error(err))

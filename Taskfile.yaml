@@ -4,13 +4,19 @@ tasks:
   default:
     cmds:
       - task: testing
-      - task: migrate
+      - task: cover
   testing:
     aliases:
       - test
     desc: "Test code"
     cmds:
       - go test -v ./...
+  cover:
+    aliases:
+      - cover
+    desc: "Check cover by testing"
+    cmds:
+      - go test -cover ./...
   migrate:
     vars:
       DB_USER: admin

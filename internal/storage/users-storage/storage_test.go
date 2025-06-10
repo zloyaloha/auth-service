@@ -104,13 +104,14 @@ func TestStorage(t *testing.T) {
 		lastName := "Doe"
 		passHash := []byte("hashedpassword")
 
-		err := testStorage.SaveUser(ctx, email, lastName, firstName, passHash)
+		usrid, err := testStorage.SaveUser(ctx, email, lastName, firstName, passHash)
 		require.NoError(t, err)
 
 		user, err := testStorage.GetUser(ctx, email)
 		require.NoError(t, err)
 		require.NotNil(t, user)
 
+		require.Equal(t, int64(1), usrid)
 		require.Equal(t, email, user.Email)
 		require.Equal(t, firstName, user.FirstName)
 		require.Equal(t, lastName, user.LastName)
@@ -124,11 +125,13 @@ func TestStorage(t *testing.T) {
 
 	t.Run("Save Duplicate User", func(t *testing.T) {
 		email := "duplicate@example.com"
-		err := testStorage.SaveUser(ctx, email, "Last", "First", []byte("hash"))
+		usrid, err := testStorage.SaveUser(ctx, email, "Last", "First", []byte("hash"))
 		require.NoError(t, err)
+		require.Equal(t, int64(2), usrid)
 
-		err = testStorage.SaveUser(ctx, email, "Last", "First", []byte("hash"))
+		usrid, err = testStorage.SaveUser(ctx, email, "Last", "First", []byte("hash"))
 		require.ErrorIs(t, err, ErrUserExists)
+		require.Equal(t, int64(0), usrid)
 	})
 
 	t.Run("Save and Get App", func(t *testing.T) {

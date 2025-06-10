@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/zloyaloha/auth-service/internal/app"
 	"github.com/zloyaloha/auth-service/internal/config"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -13,13 +14,13 @@ const (
 )
 
 func main() {
-	// cfg := config.MustLoad()
+	cfg := config.MustLoad()
 
-	// log := buildLogger(cfg.Env)
+	logger := buildLogger(cfg.Env)
 
-	// TODO: app
+	app := app.New(logger, cfg.GRPC.Port, cfg.TokenTTL)
 
-	// TODO: server
+	app.GRPCServer.MustRun()
 }
 
 func buildLogger(env string) *zap.Logger {

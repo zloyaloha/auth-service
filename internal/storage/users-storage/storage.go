@@ -23,7 +23,7 @@ var (
 type Storage interface {
 	GetUser(ctx context.Context, email string) (*models.User, error)
 	GetApp(ctx context.Context, id int) (*models.App, error)
-	SaveUser(ctx context.Context, email, last_name, first_name string, passHash []byte) error
+	SaveUser(ctx context.Context, email, last_name, first_name string, passHash []byte) (int64, error)
 	SaveApp(ctx context.Context, name, secret string) error
 }
 
@@ -111,31 +111,34 @@ func NewPGHandler(ctx context.Context) (*PGStorage, error) {
 	return &PGStorage{pool: pool}, nil
 }
 
-func (st *PGStorage) SaveUser(ctx context.Context, email, last_name, first_name string, passHash []byte) error {
+func (st *PGStorage) SaveUser(ctx context.Context, email, last_name, first_name string, passHash []byte) (int64, error) {
 	tx, err := st.pool.Begin(ctx)
 
 	if err != nil {
-		return fmt.Errorf("failed to begin transaction: %w", err)
+		return 0, fmt.Errorf("failed to begin transaction: %w", err)
 	}
 	defer tx.Rollback(ctx)
 
 	querySaveUser := `
 		INSERT INTO users(email, last_name, first_name, password_hash)
 		VALUES ($1, $2, $3, $4)
+		RETURNING id
 	`
-	_, err = tx.Exec(ctx, querySaveUser, email, last_name, first_name, passHash)
+
+	var userID int64
+	err = tx.QueryRow(ctx, querySaveUser, email, last_name, first_name, passHash).Scan(&userID)
 
 	if err != nil {
 		if pgErr, ok := err.(*pgconn.PgError); ok && pgErr.Code == "23505" {
-			return fmt.Errorf("%w", ErrUserExists)
+			return 0, fmt.Errorf("%w", ErrUserExists)
 		}
-		return err
+		return 0, err
 	}
 
 	if err := tx.Commit(ctx); err != nil {
-		return fmt.Errorf("failed to commit transaction: %w", err)
+		return 0, fmt.Errorf("failed to commit transaction: %w", err)
 	}
-	return nil
+	return userID, nil
 }
 
 func (st *PGStorage) SaveApp(ctx context.Context, name, secret string) error {
