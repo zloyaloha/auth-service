@@ -11,8 +11,9 @@ import (
 type Config struct {
 	Env 			string			`yaml:"env" env-default:"local"`
 	// StoragePath 	string			`yaml:"storage_path" env-required:"true"`
+	PGConnectionConfig PGConnectionConfig `yaml:"pgconnection"`
 	GRPC 			GRPCConfig		`yaml:"grpc"`
-	MigrationsPath 	string			
+	MigrationsPath 	string
 	TokenTTL 		time.Duration 	`yaml:"token_ttl" env-default:"1h"`
 }
 
@@ -21,7 +22,15 @@ type GRPCConfig struct {
 	Timeout 		time.Duration	`yaml:"timeout"`
 }
 
-func MustLoad() *Config {
+type PGConnectionConfig struct {
+	Name     string		`yaml:"postgres_db"`
+	User     string		`yaml:"postgres_user"`
+	Password string		`yaml:"postgres_password"`
+	Host     string		`yaml:"postgres_host"`
+	Port     string		`yaml:"postgres_port"`
+}
+
+func MustLoad() Config {
 	configPath := fetchConfigPath()
 	if configPath == "" {
 		panic("config path is empty")
@@ -37,10 +46,10 @@ func MustLoad() *Config {
 		panic("config path is empty: " + err.Error())
 	}
 
-	return &cfg
+	return cfg
 }
 
-// first of all check command line flag, then ENV var, then default
+
 func fetchConfigPath() string {
 	var res string
 

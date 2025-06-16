@@ -18,7 +18,7 @@ func main() {
 
 	logger := buildLogger(cfg.Env)
 
-	app := app.New(logger, cfg.GRPC.Port, cfg.TokenTTL)
+	app := app.New(logger, cfg)
 
 	app.GRPCServer.MustRun()
 }

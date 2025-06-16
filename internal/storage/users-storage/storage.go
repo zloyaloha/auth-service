@@ -4,13 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/joho/godotenv"
+	"github.com/zloyaloha/auth-service/internal/config"
 	"github.com/zloyaloha/auth-service/internal/domain/models"
 )
 
@@ -31,56 +30,7 @@ type PGStorage struct {
 	pool *pgxpool.Pool
 }
 
-type PGConnectionInfo struct {
-	Name     string
-	User     string
-	Password string
-	Host     string
-	Port     string
-}
-
-func initEnv() (*PGConnectionInfo, error) {
-	if err := godotenv.Load(); err != nil {
-		return nil, err
-	}
-
-	dbName, exists := os.LookupEnv("POSTGRES_NAME")
-	if !exists {
-		return nil, fmt.Errorf("not found dbName in env file")
-	}
-	dbUsername, exists := os.LookupEnv("POSTGRES_USER")
-	if !exists {
-		return nil, fmt.Errorf("not found dbUser in env file")
-	}
-	dbPassword, exists := os.LookupEnv("POSTGRES_PASSWORD")
-	if !exists {
-		return nil, fmt.Errorf("not found dbPassword in env file")
-	}
-	dbPort, exists := os.LookupEnv("POSTGRES_PORT")
-	if !exists {
-		return nil, fmt.Errorf("not found dbPort in env file")
-	}
-	dbHost, exists := os.LookupEnv("POSTGRES_HOST")
-	if !exists {
-		return nil, fmt.Errorf("not found dbHost in env file")
-	}
-
-	return &PGConnectionInfo{
-		Name:     dbName,
-		User:     dbUsername,
-		Password: dbPassword,
-		Port:     dbPort,
-		Host:     dbHost,
-	}, nil
-}
-
-func NewPGHandler(ctx context.Context) (*PGStorage, error) {
-	config, err := initEnv()
-
-	if err != nil {
-		return nil, err
-	}
-
+func NewPGHandler(ctx context.Context, config config.PGConnectionConfig) (*PGStorage, error) {
 	connString := fmt.Sprintf(
 		"host=%s port=%s user=%s password=%s dbname=%s",
 		config.Host,

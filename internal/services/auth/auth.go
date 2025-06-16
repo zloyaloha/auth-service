@@ -80,7 +80,7 @@ func (a *Auth) Login(
 	if err != nil {
 		if errors.Is(err, storage.ErrUserNotFound) {
 			a.logger.Warn("user not found", zap.String("email", email))
-			return "", fmt.Errorf("error: %w", err)
+			return "", fmt.Errorf("error: %w", ErrInvalidCredentials)
 		}
 
 		a.logger.Error("failed to get user", zap.Error(err), zap.String("email", email))
@@ -88,8 +88,8 @@ func (a *Auth) Login(
 	}
 
 	if err := bcrypt.CompareHashAndPassword(user.PassHash, []byte(password)); err != nil {
-		a.logger.Info("invalid credentials", zap.String("email", email))
-		return "", fmt.Errorf("error: %w", err)
+		a.logger.Info("invalid password", zap.String("email", email))
+		return "", fmt.Errorf("error: %w", ErrInvalidCredentials)
 	}
 
 	app, err := a.appProvider.GetApp(ctx, appID);
