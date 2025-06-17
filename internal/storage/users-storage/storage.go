@@ -24,6 +24,7 @@ type Storage interface {
 	GetApp(ctx context.Context, id int) (*models.App, error)
 	SaveUser(ctx context.Context, email, last_name, first_name string, passHash []byte) (int64, error)
 	SaveApp(ctx context.Context, name, secret string) error
+	Stop()
 }
 
 type PGStorage struct {
@@ -175,4 +176,8 @@ func (st *PGStorage) GetApp(ctx context.Context, id int) (*models.App, error) {
 		return nil, fmt.Errorf("failed to commit transaction")
 	}
 	return app, nil
+}
+
+func (st *PGStorage) Stop() {
+	st.pool.Close()
 }

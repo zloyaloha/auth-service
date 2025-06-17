@@ -1,6 +1,11 @@
 package main
 
 import (
+	"fmt"
+	"os"
+	"os/signal"
+	"syscall"
+
 	"github.com/zloyaloha/auth-service/internal/app"
 	"github.com/zloyaloha/auth-service/internal/config"
 	"go.uber.org/zap"
@@ -20,7 +25,17 @@ func main() {
 
 	app := app.New(logger, cfg)
 
-	app.GRPCServer.MustRun()
+	go func() {
+		app.GRPCServer.MustRun()
+	}()
+	fmt.Print("server started")
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, syscall.SIGTERM, syscall.SIGKILL)
+
+	<-stop
+	app.GRPCServer.Stop()
+
+	logger.Info("server gracefully stopped")
 }
 
 func buildLogger(env string) *zap.Logger {

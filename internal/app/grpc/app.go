@@ -15,12 +15,12 @@ import (
 )
 
 type App struct {
-	logger *zap.Logger
+	logger     *zap.Logger
 	gRPCServer *grpc.Server
-	port int
+	port       int
 }
 
-func NewApp(logger *zap.Logger, authService auth.Auth, port int) (*App) {
+func NewApp(logger *zap.Logger, authService auth.Auth, port int) *App {
 	opts := []grpc_zap.Option{
 		grpc_zap.WithLevels(grpc_zap.DefaultCodeToLevel),
 		grpc_zap.WithDurationField(func(duration time.Duration) zapcore.Field {
@@ -40,19 +40,19 @@ func NewApp(logger *zap.Logger, authService auth.Auth, port int) (*App) {
 	auth.Register(gRPCServer, authService)
 
 	return &App{
-		logger: logger,
+		logger:     logger,
 		gRPCServer: gRPCServer,
-		port: port,
+		port:       port,
 	}
 }
 
-func (a* App) MustRun() {
+func (a *App) MustRun() {
 	if err := a.Run(); err != nil {
 		panic(err)
 	}
 }
 
-func (a* App) Run() error {
+func (a *App) Run() error {
 	l, err := net.Listen("tcp", fmt.Sprintf(":%d", a.port))
 	if err != nil {
 		return fmt.Errorf("error while staring tcp server: %w", err)
@@ -66,6 +66,11 @@ func (a* App) Run() error {
 		return fmt.Errorf("error while serving grpc server: %w", err)
 	}
 
-	return nil;
+	return nil
 }
 
+func (a *App) Stop() {
+	a.logger.Info("stopping server", zap.Int("port", a.port))
+
+	a.gRPCServer.GracefulStop()
+}
