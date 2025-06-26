@@ -1,0 +1,128 @@
+body {
+    margin: 0;
+    font-family: 'Oswald', sans-serif;
+    background-color: #f0f2f5;
+    background-image: url('ice-texture.png');
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    color: #333;
+}
+
+.form-container {
+    background-color: #fff; /* Form is now white */
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    width: 100%;
+    max-width: 400px;
+    border: 3px solid #c8102e; /* Red border */
+    color: #001f5b; /* Default text color to dark blue */
+}
+
+.form-header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.form-header img {
+    width: 80px;
+    margin-bottom: 0.5rem;
+}
+
+.form-header h1 {
+    font-family: 'Staatliches', cursive;
+    color: #c8102e; /* Red text color */
+    margin: 0;
+    font-size: 3rem; /* Slightly larger for the new font */
+    letter-spacing: 2px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+}
+
+.form-toggle {
+    display: flex;
+    border: 2px solid #001f5b; /* Dark blue border */
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 2rem;
+}
+
+.toggle-btn {
+    flex: 1;
+    padding: 0.75rem;
+    font-size: 1.2rem; /* Increased size */
+    font-weight: normal;
+    cursor: pointer;
+    background-color: transparent;
+    color: #001f5b; /* Dark blue text */
+    border: none;
+    transition: background-color 0.3s, color 0.3s;
+    font-family: 'Staatliches', cursive;
+    letter-spacing: 1px;
+}
+
+.toggle-btn:first-child {
+    border-right: 2px solid #001f5b; /* Dark blue separator */
+}
+
+.toggle-btn.active {
+    background-color: #c8102e; /* Red background */
+    color: #fff; /* White text */
+}
+
+.toggle-btn:not(.active):hover {
+    background-color: rgba(0, 31, 91, 0.1); /* Light blue hover */
+}
+
+form label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+}
+
+form input {
+    width: 100%;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    box-sizing: border-box; /* Ensures padding doesn't affect width */
+    font-size: 1rem;
+    font-family: 'Oswald', sans-serif;
+}
+
+form input:focus {
+    outline: none;
+    border-color: #001f5b; /* A dark blue */
+    box-shadow: 0 0 0 3px rgba(0, 31, 91, 0.3);
+}
+
+.submit-btn {
+    width: 100%;
+    padding: 0.8rem;
+    font-size: 1.3rem; /* Increased size */
+    font-weight: normal;
+    font-family: 'Staatliches', cursive;
+    color: #fff;
+    background-color: #001f5b; /* A dark blue color */
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+    margin-top: 1rem;
+    letter-spacing: 1px; /* Added for spacing */
+}
+
+.submit-btn:hover {
+    background-color: #003399;
+    transform: translateY(-2px);
+}
+
+.hidden {
+    display: none;
+}
