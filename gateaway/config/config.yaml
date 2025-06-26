@@ -1,0 +1,4 @@
+env: "local"
+http:
+  address: "localhost:8081"
+  timeout: 10h
