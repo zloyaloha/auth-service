@@ -17,7 +17,7 @@ func New(
 	logger *zap.Logger,
 	config config.Config,
 ) *App {
-	app := httpapp.New(ctx, logger, config.Server.Address, config.Server.AuthServiceAddress)
+	app := httpapp.New(ctx, logger, config.HTTP.Address, config.HTTP.AuthServiceAddress)
 
 	return &App{
 		HTTPServer: app,

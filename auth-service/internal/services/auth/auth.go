@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 	"time"
 
 	"go.uber.org/zap"
@@ -11,7 +12,7 @@ import (
 
 	"github.com/zloyaloha/auth-service/internal/domain/models"
 	"github.com/zloyaloha/auth-service/internal/lib/jwt"
-	"github.com/zloyaloha/auth-service/internal/storage/users-storage"
+	storage "github.com/zloyaloha/auth-service/internal/storage/users-storage"
 )
 
 var (
@@ -21,6 +22,7 @@ var (
 type UserStorage interface {
 	SaveUser(ctx context.Context, email, first_name, last_name string, hash []byte) (int64, error)
 	GetUser(ctx context.Context, email string) (*models.User, error)
+	GetRole(ctx context.Context, user_id int64) (string, error)
 }
 
 type AppProvider interface {
@@ -29,10 +31,10 @@ type AppProvider interface {
 }
 
 type Auth struct {
-	logger *zap.Logger
-	usrStorage UserStorage
+	logger      *zap.Logger
+	usrStorage  UserStorage
 	appProvider AppProvider
-	tokenTTL time.Duration
+	tokenTTL    time.Duration
 }
 
 func New(
@@ -42,10 +44,10 @@ func New(
 	ttl time.Duration,
 ) *Auth {
 	return &Auth{
-		logger: logger,
-		usrStorage: userStorage,
+		logger:      logger,
+		usrStorage:  userStorage,
 		appProvider: appProvider,
-		tokenTTL: ttl,
+		tokenTTL:    ttl,
 	}
 }
 
@@ -87,12 +89,19 @@ func (a *Auth) Login(
 		return "", fmt.Errorf("error: %w", err)
 	}
 
+	role, err := a.usrStorage.GetRole(ctx, user.ID)
+	if err != nil {
+		a.logger.Error("failed to get user role", zap.Error(err), zap.Int64("email", user.ID))
+		return "", fmt.Errorf("error: %w", err)
+	}
+	user.Role = role
+
 	if err := bcrypt.CompareHashAndPassword(user.PassHash, []byte(password)); err != nil {
 		a.logger.Info("invalid password", zap.String("email", email))
 		return "", fmt.Errorf("error: %w", ErrInvalidCredentials)
 	}
 
-	app, err := a.appProvider.GetApp(ctx, appID);
+	app, err := a.appProvider.GetApp(ctx, appID)
 	if err != nil {
 		if errors.Is(err, storage.ErrAppNotFound) {
 			a.logger.Warn("app not found", zap.Int("appID", appID))
@@ -112,4 +121,42 @@ func (a *Auth) Login(
 	}
 
 	return token, nil
+}
+
+func (a *Auth) ValidateToken(ctx context.Context, tokenString string) (*jwt.Claims, error) {
+	a.logger.Info("validating token")
+
+	app, err := a.appProvider.GetApp(ctx, 1) // TODO
+	if err != nil {
+		a.logger.Error("failed to get app", zap.Error(err))
+		return nil, err
+	}
+
+	claims, err := jwt.ValidateToken(tokenString, app.Secret)
+	if err != nil {
+		a.logger.Error("invalid token", zap.Error(err))
+		return nil, err
+	}
+
+	return claims, nil
+}
+
+func (a *Auth) GetRole(ctx context.Context, userID string) (string, error) {
+	a.logger.Info("checking user role", zap.String("userID", userID))
+
+	requestedUserID, err := strconv.ParseInt(userID, 10, 64)
+	if err != nil {
+		a.logger.Warn("invalid user_id format", zap.String("userID", userID), zap.Error(err))
+		return "", fmt.Errorf("invalid user_id format: %w", err)
+	}
+
+	role, err := a.usrStorage.GetRole(ctx, requestedUserID)
+	if err != nil {
+		a.logger.Warn("failed to get user role", zap.Error(err), zap.Int64("userID", requestedUserID))
+		return "", fmt.Errorf("failed to get user role: %w", err)
+	}
+
+	a.logger.Info("role check completed", zap.Int64("userID", requestedUserID), zap.String("role", role))
+
+	return role, nil
 }

@@ -4,10 +4,9 @@ go 1.24.4
 
 require (
 	github.com/go-chi/chi v1.5.5
-	github.com/go-chi/chi/v5 v5.2.1
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.26.3
 	github.com/ilyakaznacheev/cleanenv v1.5.0
-	github.com/zloyaloha/protos v1.4.0
+	github.com/zloyaloha/protos v1.5.4
 	go.uber.org/zap v1.27.0
 	google.golang.org/grpc v1.73.0
 )

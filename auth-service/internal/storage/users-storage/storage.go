@@ -24,6 +24,7 @@ type Storage interface {
 	GetApp(ctx context.Context, id int) (*models.App, error)
 	SaveUser(ctx context.Context, email, last_name, first_name string, passHash []byte) (int64, error)
 	SaveApp(ctx context.Context, name, secret string) error
+	GetRole(ctx context.Context, userId int64) (string, error)
 	Stop()
 }
 
@@ -176,6 +177,35 @@ func (st *PGStorage) GetApp(ctx context.Context, id int) (*models.App, error) {
 		return nil, fmt.Errorf("failed to commit transaction")
 	}
 	return app, nil
+}
+
+func (st *PGStorage) GetRole(ctx context.Context, user_id int64) (string, error) {
+	tx, err := st.pool.Begin(ctx)
+
+	if err != nil {
+		return  "", fmt.Errorf("failed to begin transaction: %w", err)
+	}
+
+	queryGetRole := `
+		SELECT role
+		FROM admins
+		WHERE id = $1
+	`
+
+	var role string
+	err = tx.QueryRow(ctx, queryGetRole, user_id).Scan(&role)
+
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return "user", nil
+		}
+		return "", err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return "", fmt.Errorf("failed to commit transaction")
+	}
+	return role, nil
 }
 
 func (st *PGStorage) Stop() {

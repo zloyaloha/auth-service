@@ -9,14 +9,14 @@ import (
 )
 
 type Config struct {
-	Env 	string 			`yaml:"env"`
-	Server 	HTTPServer 		`yaml:"http"`
+	Env  string      `yaml:"env"`
+	HTTP HTTPServer  `yaml:"http"`
 }
 
 type HTTPServer struct {
-	Address string				`yaml:"string"  env-default:"0.0.0.0:8080"`
-	AuthServiceAddress string 	`yaml:"string" env-default:"0.0.0.0:44044"`
-	Timeout time.Duration		`yaml:"timeout" env-default:"5s"`
+	Address            string        `yaml:"address" env-default:"0.0.0.0:8080"`
+	AuthServiceAddress string        `yaml:"authaddress" env-default:"0.0.0.0:44044"`
+	Timeout            time.Duration `yaml:"timeout" env-default:"5s"`
 }
 
 func MustLoad() Config {

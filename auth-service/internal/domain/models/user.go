@@ -6,4 +6,5 @@ type User struct {
 	LastName	string
 	Email 		string
 	PassHash 	[]byte
+	Role		string
 }

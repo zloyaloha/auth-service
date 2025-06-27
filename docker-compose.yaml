@@ -1,9 +1,11 @@
+version: '3.8'
 services:
+  # База данных PostgreSQL
   postgres:
     image: postgres:latest
     restart: always
     ports:
-    - 5432:5432
+      - "5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -h localhost -p $$POSTGRES_PORT"]
       interval: 10s
@@ -11,4 +13,56 @@ services:
       start_period: 1s
       timeout: 5s
     env_file:
-      ./auth-service/configs/postgres.env
+      - ./auth-service/configs/postgres.env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - ticket-network
+  # Сервис аутентификации
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "44044:44044"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - ./auth-service/configs/postgres.env
+    networks:
+      - ticket-network
+    volumes:
+      - ./auth-service/migrations:/root/migrations
+  # Gateway сервис
+  gateway:
+    build:
+      context: ./gateaway
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      - auth-service
+    networks:
+      - ticket-network
+  # Frontend
+  frontend:
+    build:
+      context: ./front
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - gateway
+    networks:
+      - ticket-network
+
+volumes:
+  postgres_data:
+
+networks:
+  ticket-network:
+    driver: bridge
